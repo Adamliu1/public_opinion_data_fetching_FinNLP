@@ -38,7 +38,6 @@ def check_us_ips(proxies_list):
 def get_china_free_proxy(pages = 10):
     proxies_list = []
     for page in tqdm(range(1, pages+1), desc = "Gathering free ips by pages..."):
-
         base_url = f'https://www.kuaidaili.com/free/inha/{page}'
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36'}
         success = False
@@ -47,7 +46,8 @@ def get_china_free_proxy(pages = 10):
                 response = requests.get(base_url, headers=headers)
                 data = response.text
                 res = etree.HTML(data)
-                trs = res.xpath("/html/body/div[1]/div[4]/div[2]/div[2]/div[2]/table/tbody/tr")
+                # trs = res.xpath("/html/body/div[1]/div[4]/div[2]/div[2]/div[2]/table/tbody/tr")
+                trs = res.xpath("/html/body/div[3]/main/div[1]/section/div[3]/div[1]/table/tbody/tr") # new path
                 if len(trs)!=0:
                     success = True
                     for tr in trs:
@@ -59,7 +59,6 @@ def get_china_free_proxy(pages = 10):
                         proxies_list.append(proxies_dict)
                 else:
                     time.delay(0.01)
-      
             except:
                 pass
 
