@@ -1,347 +1,191 @@
-# Internet-scale Financial Data
+# Data-Centric FinGPT: Open-source for Open Finance.
+[![Downloads](https://pepy.tech/badge/fingpt)](https://pepy.tech/project/fingpt)
+[![Downloads](https://pepy.tech/badge/fingpt/week)](https://pepy.tech/project/fingpt)
+[![Python 3.8](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![PyPI](https://img.shields.io/pypi/v/fingpt.svg)](https://pypi.org/project/fingpt/)
+![License](https://img.shields.io/github/license/AI4Finance-Foundation/fingpt.svg?color=brightgreen)
 
-The demos are shown in [FinGPT](https://github.com/AI4Finance-Foundation/ChatGPT-for-FinTech)
+Let us DO NOT expect Wall Street to open-source LLMs nor open APIs, due to FinTech institutes' internal regulations and policies.
 
-[FinNLP Website](https://ai4finance-foundation.github.io/FinNLP/) 
+We democratize Internet-scale data for financial large language models (FinLLMs) at [FinNLP](https://github.com/AI4Finance-Foundation/FinNLP) and [FinNLP Website](https://ai4finance-foundation.github.io/FinNLP/) 
+
+[Blueprint of FinGPT](https://arxiv.org/abs/2306.06031)
 
 **Disclaimer: We are sharing codes for academic purposes under the MIT education license. Nothing herein is financial advice, and NOT a recommendation to trade real money. Please use common sense and always first consult a professional before trading or investing.**
 
-## Ⅰ. How to Use
+## Why FinGPT?
 
-### 1. News
+1). Finance is highly dynamic. [BloombergGPT](https://arxiv.org/abs/2303.17564) retrains an LLM using a mixed dataset of finance and general data sources, which is too expensive (1.3M GPU hours, a cost of around **$5M**). It is costly to retrain an LLM model every month or every week, so lightweight adaptation is highly favorable in finance. Instead of undertaking a costly and time-consuming process of retraining a model from scratch with every significant change in the financial landscape, FinGPT can be fine-tuned swiftly to align with new data (the cost of adaptation falls significantly, estimated at less than **$416 per training**).
 
-* US
+2). Democratizing Internet-scale financial data is critical, which should allow timely updates (monthly or weekly updates) using an automatic data curation pipeline. But, BloombergGPT has privileged data access and APIs. FinGPT presents a more accessible alternative. It prioritizes lightweight adaptation, leveraging the strengths of some of the best available open-source LLMs, which are then fed with financial data and fine-tuned for financial language modeling.
 
-  ``` python
-  # Finnhub (Yahoo Finance, Reuters, SeekingAlpha, CNBC...)
-  from finnlp.data_sources.news.finnhub_date_range import Finnhub_Date_Range
-  
-  start_date = "2023-01-01"
-  end_date = "2023-01-03"
-  config = {
-      "use_proxy": "us_free",    # use proxies to prvent ip blocking
-      "max_retry": 5,
-      "proxy_pages": 5,
-      "token": "YOUR_FINNHUB_TOKEN"  # Available at https://finnhub.io/dashboard
-  }
-  
-  news_downloader = Finnhub_Date_Range(config)                      # init
-  news_downloader.download_date_range_stock(start_date,end_date)    # Download headers
-  news_downloader.gather_content()                                  # Download contents
-  df = news_downloader.dataframe
-  selected_columns = ["headline", "content"]
-  df[selected_columns].head(10)
-  
-  --------------------
-  
-  # 	headline						content
-  # 0	My 26-Stock $349k Portfolio Gets A Nice Petrob...	Home\nInvesting Strategy\nPortfolio Strategy\n...
-  # 1	Apple’s Market Cap Slides Below $2 Trillion fo...	Error
-  # 2	US STOCKS-Wall St starts the year with a dip; ...	(For a Reuters live blog on U.S., UK and Europ...
-  # 3	Buy 4 January Dogs Of The Dow, Watch 4 More	Home\nDividends\nDividend Quick Picks\nBuy 4 J...
-  # 4	Apple's stock market value falls below $2 tril...	Jan 3 (Reuters) - Apple Inc's \n(AAPL.O)\n sto...
-  # 5	CORRECTED-UPDATE 1-Apple's stock market value ...	Jan 3 (Reuters) - Apple Inc's \n(AAPL.O)\n sto...
-  # 6	Apple Stock Falls Amid Report Of Product Order...	Apple stock got off to a slow start in 2023 as...
-  # 7	US STOCKS-Wall St starts the year with a dip; ...	Summary\nCompanies\nTesla shares plunge on Q4 ...
-  # 8	More than $1 trillion wiped off value of Apple...	apple store\nMore than $1 trillion has been wi...
-  # 9	McLean's Iridium inks agreement to put its sat...	The company hasn't named its partner, but it's...
-  ```
-  
-  
-  
-* China
+3). The key technology is "RLHF (Reinforcement learning from human feedback)", which is missing in BloombergGPT. RLHF enables an LLM model to learn individual preferences (risk-aversion level, investing habits, personalized robo-advisor, etc.), which is the "secret" ingredient of ChatGPT and GPT4.
 
-    ``` python
-    # Sina Finance
-    from finnlp.data_sources.news.sina_finance_date_range import Sina_Finance_Date_Range
-    
-    start_date = "2016-01-01"
-    end_date = "2016-01-02"
-    config = {
-        "use_proxy": "china_free",   # use proxies to prvent ip blocking
-        "max_retry": 5,
-        "proxy_pages": 5,
-    }
-    
-    news_downloader = Sina_Finance_Date_Range(config)                # init
-    news_downloader.download_date_range_all(start_date,end_date)	 # Download headers
-    news_downloader.gather_content()		                        # Download contents
-    df = news_downloader.dataframe
-    selected_columns = ["title", "content"]
-    df[selected_columns].head(10)
-    
-    --------------------
-    
-    #         title	                                 content
-    # 0	分析师：伊朗重回国际原油市场无法阻止	        新浪美股讯 北京时间1月1日晚CNBC称，加拿大皇家银行（RBC）分析师Helima Cro...
-    # 1	FAA：波音767的逃生扶梯存在缺陷	          新浪美股讯 北京时间1日晚，美国联邦航空局（FAA）要求航空公司对波音767机型的救生扶梯进...
-    # 2	非制造业新订单指数创新高 需求回升力度明显	   中新社北京1月1日电 （记者 刘长忠）记者1日从中国物流与采购联合会获悉，在最新发布的201...
-    # 3	雷曼兄弟针对大和证券提起索赔诉讼	          新浪美股讯 北京时间1日下午共同社称，2008年破产的美国金融巨头雷曼兄弟公司的清算法人日前...
-    # 4	国内钢铁PMI有所回升 钢市低迷形势有所改善	   新华社上海1月1日专电（记者李荣）据中物联钢铁物流专业委员会1日发布的指数报告，2015年1...
-    # 5	马息岭凸显朝鲜旅游体育战略	                 新浪美股北京时间1日讯 三位单板滑雪手将成为最早拜访马息岭滑雪场的西方专业运动员，他们本月就...
-    # 6	五洲船舶破产清算 近十年来首现国有船厂倒闭	   （原标题：中国首家国有船厂破产倒闭）\n低迷的中国造船市场，多年来首次出现国有船厂破产清算的...
-    # 7	过半城市房价环比上涨 百城住宅均价加速升温	    资料图。中新社记者 武俊杰 摄\n中新社北京1月1日电 (记者 庞无忌)中国房地产市场在20...
-    # 8	经济学人：巴西病根到底在哪里	              新浪美股北京时间1日讯 原本，巴西人是该高高兴兴迎接2016年的。8月间，里约热内卢将举办南...
-    # 9	中国首家国有船厂破产倒闭:五洲船舶目前已停工	 低迷的中国造船市场，多年来首次出现国有船厂破产清算的一幕。浙江海运集团旗下的五洲船舶修造公司...
-    
-    # Easymoney
-    from finnlp.data_sources.news.eastmoney_streaming import Eastmoney_Streaming
-    
-    pages = 3
-    stock = "600519"
-    config = {
-        "use_proxy": "china_free",
-        "max_retry": 5,
-        "proxy_pages": 5,
-    }
-    
-	news_downloader = Eastmoney_Streaming(config)
-	news_downloader.download_streaming_stock(stock,pages)
-	df = news_downloader.dataframe
-	selected_columns = ["title", "create time"]
-    df[selected_columns].head(10)
-    
-    --------------------
-    
-    #     title	create time
-    # 0	茅台2022年报的12个小秘密	04-09 19:40
-    # 1	东北证券维持贵州茅台买入评级 预计2023年净利润同比	04-09 11:24
-    # 2	贵州茅台：融资余额169.34亿元，创近一年新低（04-07	04-08 07:30
-    # 3	贵州茅台：融资净买入1248.48万元，融资余额169.79亿	04-07 07:28
-    # 4	贵州茅台公益基金会正式成立	04-06 12:29
-    # 5	贵州茅台04月04日获沪股通增持19.55万股	04-05 07:48
-    # 6	贵州茅台：融资余额169.66亿元，创近一年新低（04-04	04-05 07:30
-    # 7	4月4日北向资金最新动向（附十大成交股）	04-04 18:48
-    # 8	大宗交易：贵州茅台成交235.9万元，成交价1814.59元（	04-04 17:21
-    # 9	第一上海证券维持贵州茅台买入评级 目标价2428.8元	04-04 09:30
-    ```
+## FinGPT Demos
+* [FinGPT V3 (Updated on 7/11/2023)](./fingpt)
+  + **FinGPT v3 [(FinGPT_ChatGLM2_Sentiment_Instruction_LoRA_FT)](https://huggingface.co/oliverwang15/FinGPT_ChatGLM2_Sentiment_Instruction_LoRA_FT) is a LLM finetuned with LoRA method on the News and Tweets sentiment analysis dataset which achieve best scores on most of the financial sentiment analysis datasets.**
+  + Benchmark Results: 
+    | Weighted F1   | BloombergGPT | ChatGLM2 | ChatGLM2 (8-bit) | FinGPT v3 | FinGPT v3 (8-bit) |
+    | ---------------------- | ------------ | -------- | ---------------- | --------- | ----------------- |
+    | FPB  | 0.511        | 0.381    | 0.398            | **0.795** | 0.778             |
+    | FiQA-SA   | 0.751        | 0.79     | 0.801            | **0.806** | 0.801             |
+    | TFNS   | -            | 0.189    | 0.19             | **0.74**  | 0.721             |
+    | NWGI   | - | 0.449    | 0.452            | **0.578** | **0.578**         |
 
-### 2. Social Media
+* [FinGPT V2](./fingpt)
+  + **Let's train our own FinGPT in American Financial Market with LLaMA and LoRA  (Low-Rank Adaptation)**
+* [FinGPT V1](./fingpt)
+  + **Let's train our own FinGPT in Chinese Financial Market with ChatGLM and LoRA (Low-Rank Adaptation)**
 
-* US
-
-  ``` python
-  # Stocktwits
-  from finnlp.data_sources.social_media.stocktwits_streaming import Stocktwits_Streaming
-  
-  pages = 3
-  stock = "AAPL"
-  config = {
-      "use_proxy": "us_free",
-      "max_retry": 5,
-      "proxy_pages": 2,
-  }
-  
-  downloader = Stocktwits_Streaming(config)
-  downloader.download_date_range_stock(stock, pages)
-  selected_columns = ["created_at", "body"]
-  downloader.dataframe[selected_columns].head(10)
-  
-  --------------------
-  
-  # created_at	body
-  # 0	2023-04-07T15:24:22Z	NANCY PELOSI JUST BOUGHT 10,000 SHARES OF APPL...
-  # 1	2023-04-07T15:17:43Z	$AAPL $SPY \n \nhttps://amp.scmp.com/news/chi...
-  # 2	2023-04-07T15:17:25Z	$AAPL $GOOG $AMZN I took a Trump today. \n\nH...
-  # 3	2023-04-07T15:16:54Z	$SPY $AAPL will take this baby down, time for ...
-  # 4	2023-04-07T15:11:37Z	$SPY $3T it ALREADY DID - look at the pre-COV...
-  # 5	2023-04-07T15:10:29Z	$AAPL $QQQ $STUDY We are on to the next one! A...
-  # 6	2023-04-07T15:06:00Z	$AAPL was analyzed by 48 analysts. The buy con...
-  # 7	2023-04-07T14:54:29Z	$AAPL both retiring. \n \nCraig....
-  # 8	2023-04-07T14:40:06Z	$SPY $QQQ $TSLA $AAPL SPY 500 HAS STARTED🚀😍 BI...
-  # 9	2023-04-07T14:38:57Z	Nancy 🩵 (Tim) $AAPL
-  ```
-  
-  ``` python
-  # Reddit Wallstreetbets
-  from finnlp.data_sources.social_media.reddit_streaming import Reddit_Streaming
-  
-  pages = 3
-  config = {
-      "use_proxy": "us_free",
-      "max_retry": 5,
-      "proxy_pages": 2,
-  }
-  
-  downloader = Reddit_Streaming(config)
-  downloader.download_streaming_all(pages)
-  selected_columns = ["created", "title"]
-  downloader.dataframe[selected_columns].head(10)
-  
-  --------------------
-  
-  # created	title
-  # 0	2023-04-07 15:39:34	Y’all making me feel like spooderman
-  # 1	2022-12-21 04:09:42	Do you track your investments in a spreadsheet...
-  # 2	2022-12-21 04:09:42	Do you track your investments in a spreadsheet...
-  # 3	2023-04-07 15:29:23	Can a Blackberry holder get some help 🥺
-  # 4	2023-04-07 14:49:55	The week of CPI and FOMC Minutes… 4-6-23 SPY/ ...
-  # 5	2023-04-07 14:19:22	Well let’s hope your job likes you, thanks Jerome
-  # 6	2023-04-07 14:06:32	Does anyone else feel an overwhelming sense of...
-  # 7	2023-04-07 13:47:59	Watermarked Jesus explains the market being cl...
-  # 8	2023-04-07 13:26:23	Jobs report shows 236,000 gain in March. Hot l...
-  # 9	2023-04-07 13:07:15	The recession is over! Let's buy more stocks!
-  ```
-  
-* China (Weibo)
-
-  ``` python
-  # Weibo
-  from finnlp.data_sources.social_media.weibo_date_range import Weibo_Date_Range
-  
-  start_date = "2016-01-01"
-  end_date = "2016-01-02"
-  stock = "茅台"
-  config = {
-      "use_proxy": "china_free",
-      "max_retry": 5,
-      "proxy_pages": 5,
-      "cookies": "Your_Login_Cookies",
-  }
-  
-  downloader = Weibo_Date_Range(config)
-  downloader.download_date_range_stock(start_date, end_date, stock = stock)
-  df = downloader.dataframe
-  df = df.drop_duplicates()
-  selected_columns = ["date", "content"]
-  df[selected_columns].head(10)
-  
-  --------------------
-  
-  # date	content
-  # 0	2016-01-01		#舆论之锤#唯品会发声明证实销售假茅台-手机腾讯网O网页链接分享来自浏览器！
-  # 2	2016-01-01		2016元旦节快乐酒粮网官方新品首发，茅台镇老酒，酱香原浆酒：酒粮网茅台镇白酒酱香老酒纯粮原...
-  # 6	2016-01-01		2016元旦节快乐酒粮网官方新品首发，茅台镇老酒，酱香原浆酒：酒粮网茅台镇白酒酱香老酒纯粮原...
-  # 17	2016-01-01		开心，今天喝了两斤酒（茅台+扎二）三个人，开心！
-  # 18	2016-01-01		一家专卖假货的网站某宝，你该学学了！//【唯品会售假茅台：供货商被刑拘顾客获十倍补偿】O唯品...
-  # 19	2016-01-01		一家专卖假货的网站//【唯品会售假茅台：供货商被刑拘顾客获十倍补偿】O唯品会售假茅台：供货商...
-  # 20	2016-01-01		前几天说了几点不看好茅台的理由，今年过节喝点茅台支持下，个人口感，茅台比小五好喝，茅台依然是...
-  # 21	2016-01-01		老杜酱酒已到货，从明天起正式在甘肃武威开卖。可以不相信我说的话，但一定不要怀疑@杜子建的为人...
-  # 22	2016-01-01		【唯品会售假茅台后续：供货商被刑拘顾客获十倍补偿】此前，有网友投诉其在唯品会购买的茅台酒质量...
-  # 23	2016-01-01		唯品会卖假茅台，供货商被刑拘，买家获十倍补偿8888元|此前，有网友在网络论坛发贴（唯品会宣...
-  ```
-
-### 3. Company Announcement
-
-* US
-
-  ``` python
-  # SEC
-  from finnlp.data_sources.company_announcement.sec import SEC_Announcement
-  
-  start_date = "2020-01-01"
-  end_date = "2020-06-01"
-  stock = "AAPL"
-  config = {
-      "use_proxy": "us_free",
-      "max_retry": 5,
-      "proxy_pages": 3,
-  }
-  
-  downloader = SEC_Announcement(config)
-  downloader.download_date_range_stock(start_date, end_date, stock = stock)
-  selected_columns = ["file_date", "display_names", "content"]
-  downloader.dataframe[selected_columns].head(10)
-  
-  --------------------
-  
-  # file_date	display_names	content
-  # 0	2020-05-12	[KONDO CHRIS (CIK 0001631982), Apple Inc. (A...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 1	2020-04-30	[JUNG ANDREA (CIK 0001051401), Apple Inc. (A...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 2	2020-04-17	[O'BRIEN DEIRDRE (CIK 0001767094), Apple Inc....	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 3	2020-04-17	[KONDO CHRIS (CIK 0001631982), Apple Inc. (A...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 4	2020-04-09	[Maestri Luca (CIK 0001513362), Apple Inc. (...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 5	2020-04-03	[WILLIAMS JEFFREY E (CIK 0001496686), Apple I...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 6	2020-04-03	[Maestri Luca (CIK 0001513362), Apple Inc. (...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 7	2020-02-28	[WAGNER SUSAN (CIK 0001059235), Apple Inc. (...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 8	2020-02-28	[LEVINSON ARTHUR D (CIK 0001214128), Apple In...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  # 9	2020-02-28	[JUNG ANDREA (CIK 0001051401), Apple Inc. (A...	SEC Form 4 \n FORM 4UNITED STATES SECURITIES...
-  ```
-
-* China
-
-  ``` python
-  # Juchao
-  from finnlp.data_sources.company_announcement.juchao import Juchao_Announcement
-  
-  start_date = "2020-01-01"
-  end_date = "2020-06-01"
-  stock = "000001"
-  config = {
-      "use_proxy": "china_free",
-      "max_retry": 5,
-      "proxy_pages": 3,
-  }
-  
-  downloader = Juchao_Announcement(config)
-  downloader.download_date_range_stock(start_date, end_date, stock = stock, get_content = True, delate_pdf = True)
-  selected_columns = ["announcementTime", "shortTitle","Content"]
-  downloader.dataframe[selected_columns].head(10)
-  
-  --------------------
-  
-  # announcementTime	shortTitle	Content
-  # 0	2020-05-27	关于2020年第一期小型微型企业贷款专项金融债券发行完毕的公告	证券代码： 000001 证券简称：平安银行 ...
-  # 1	2020-05-22	2019年年度权益分派实施公告	1 证券代码： 000001 证券简称：平安银行 ...
-  # 2	2020-05-20	关于获准发行小微企业贷款专项金融债券的公告	证券代码： 000001 证券简称：平安银行 ...
-  # 3	2020-05-16	监事会决议公告	1 证券代码： 000001 证券简称： 平安银行 ...
-  # 4	2020-05-15	2019年年度股东大会决议公告	1 证券代码： 000001 证券简称：平安银行 ...
-  # 5	2020-05-15	2019年年度股东大会的法律意见书	北京总部 电话 : (86 -10) 8519 -1300 传真 : (86 -10...
-  # 6	2020-04-30	中信证券股份有限公司、平安证券股份有限公司关于公司关联交易有关事项的核查意见	1 中信证券股份有限公司 、平安证券股份有限 公司 关于平安银行股份有限公司 关联交易 有...
-  # 7	2020-04-30	独立董事独立意见	1 平安银行股份有限公司独立董事独立意见 根据《关于在上市公司建立独立董事制度的指导...
-  # 8	2020-04-30	关联交易公告	1 证券代码： 000001 证券简称：平安银行 ...
-  # 9	2020-04-21	2020年第一季度报告全文	证券代码： 000001 证券简称：平安银行 ...
-  ```
+## Understanding FinGPT: An Educational Blog Series
++ [FinGPT: Powering the Future of Finance with 20 Cutting-Edge Applications
+](https://medium.datadriveninvestor.com/fingpt-powering-the-future-of-finance-with-20-cutting-edge-applications-7c4d082ad3d8)
++ [FinGPT I: Why We Built the First Open-Source Large Language Model for Finance
+](https://medium.datadriveninvestor.com/fingpt-i-why-we-built-the-first-open-source-large-language-model-for-finance-c01b5517ca)
++ [FinGPT II: Cracking the Financial Sentiment Analysis Task Using Instruction Tuning of General-Purpose Large Language Models
+](https://medium.datadriveninvestor.com/fingpt-ii-cracking-the-financial-sentiment-analysis-task-using-instruction-tuning-of-3333bce428c4)
 
 
-## Ⅱ. Data Sources
+## What is FinGPT and FinNLP?
 
-### 1. News
+### The Goals of FinGPT
+1. Real-time data curation pipeline to **democratize data** for FinGPT 
+2. Lightweight adaptation to **democratize the FinGPT model** for both individuals and institutes (frequent updates)
+3. Support various **financial applications**
 
-|      Platform       |    Data Type    | Related Market | Specified Company | Range  Type |        Limits        | Support |
-| :----------------------------------------------------------: | :--------: | :------------: | :----------------------------------------------------------: | :---------------: | :-------------------: | ------------------------------------------------------------ |
-|        Yahoo        | Financial News  |   US Stocks    |         √         | Date Range  |         N/A          |    √    |
-|       Reuters       | General News |   US Stocks    |         ×         | Date Range  |         N/A          |    Soon    |
-| Seeking Alpha | Financial News | US Stocks | √ | Streaming | N/A | √ |
-|        Sina         | Financial News  |   CN Stocks    |         ×         | Date Range  |         N/A          |    √    |
-|      Eastmoney      | Financial News  |   CN Stocks    |         √         | Date Range  |         N/A          |    √    |
-|        Yicai        | Financial News  |   CN Stocks    |         √         | Date Range  |         N/A          |  Soon   |
-|        CCTV         | General News |   CN Stocks    |         ×         | Date Range  |         N/A          |    √    |
-| US Mainstream Media | Financial News  |   US Stocks    |         √         | Date Range  |    Account (Free)    |    √    |
-| CN Mainstream Media | Financial News  |   CN Stocks    |         ×         | Date Range  | Account (￥500/year) |    √    |
+* FinNLP provides a playground for all people interested in LLMs and NLP in Finance. Here we provide full pipelines for LLM training and finetuning in the field of finance. The full architecture is shown in the following picture. Detail codes and introductions can be found [here](https://github.com/AI4Finance-Foundation/FinNLP). Or you may refer to the [wiki](https://ai4finance-foundation.github.io/FinNLP/)
 
-### 2. Social Media
+<div align="center">
+<img align="center" src=figs/FinGPT_framework.png>
+</div>
 
-|        Platform         | Data Type | Related Market | Specified Company | Range Type | Source Type | Limits  | Support |
-| :---------------------: | :-------: | :------------: | :---------------: | :--------: | :---------: | :-----: | :-----: |
-|         Twitter         |  Tweets   |   US Stocks    |         √         | Date Range |  Official   |   N/A   |    √    |
-|         Twitter         | Sentiment |   US Stocks    |         √         | Date Range | Third Party |   N/A   |    √    |
-|       StockTwits        |  Tweets   |   US Stocks    |         √         |  Lastest   |  Official   |   N/A   |    √    |
-| Reddit (wallstreetbets) |  Threads  |   US Stocks    |         ×         |  Lastest   |  Official   |   N/A   |    √    |
-|         Reddit          | Sentiment |   US Stocks    |         √         | Date Range | Third Party |   N/A   |    √    |
-|          Weibo          |  Tweets   |   CN Stocks    |         √         | Date Range |  Official   | Cookies |    √    |
-|          Weibo          |  Tweets   |   CN Stocks    |         √         |  Lastest   |  Official   |   N/A   |    √    |
+## End-to-end framework: FinGPT embraces a full-stack framework for FinLLMs with four layers:
+* **Data source layer**: This layer assures comprehensive market coverage, addressing the temporal sensitivity of financial data through real-time information capture.
+* **Data engineering layer**: Primed for real-time NLP data processing, this layer tackles the inherent challenges of high temporal sensitivity and low signal-to-noise ratio in financial data.
+* **LLMs layer**: Focusing on a range of fine-tuning methodologies such as LoRA, this layer mitigates the highly dynamic nature of financial data, ensuring the model’s relevance and accuracy.
+* **Application layer**: Showcasing practical applications and demos, this layer highlights the potential capability of FinGPT in the financial sector.
 
-### 3. Company Announcement
-|         Platform          | Data Type | Related Market | Specified Company | Range Type | Source Type | Limits | Support |
-| :-----------------------: | :-------: | :------------: | :---------------: | :--------: | :---------: | :----: | :-----: |
-| Juchao (Official Website) |   Text    |   CN Stocks    |         √         | Date Range |  Official   |  N/A   |    √    |
-|  SEC (Official Website)   |   Text    |   US Stocks    |         √         | Date Range |  Official   |  N/A   |    √    |
-|           Sina            |   Text    |   CN Stocks    |         √         |  Lastest   | Third Party |  N/A   |    √    |
+## News
+
++ [Columbia Perspectives on ChatGPT](https://datascience.columbia.edu/news/2023/columbia-perspectives-on-chatgpt/?utm_source=sendinblue&utm_campaign=DSI%20Newsletter%20April%202023&utm_medium=email)
++ [MIT Technology Review] [ChatGPT is about to revolutionize the economy. We need to decide what that looks like](https://www.technologyreview.com/2023/03/25/1070275/chatgpt-revolutionize-economy-decide-what-looks-like/)
++ [BloombergGPT] [BloombergGPT: A Large Language Model for Finance](https://arxiv.org/abs/2303.17564)
++ [Finextra] [ChatGPT and Bing AI to sit as panellists at fintech conference](https://www.finextra.com/newsarticle/41973/chatgpt-and-bing-ai-to-sit-as-panellists-at-fintech-conference)
+
+## ChatGPT at AI4Finance
+
++ [YouTube video] [I Built a Trading Bot with ChatGPT](https://www.youtube.com/watch?v=fhBw3j_O9LE), combining ChatGPT and FinRL.
++ [Hey, ChatGPT! Explain FinRL code to me!](https://medium.com/@ai4finance/hey-chatgpt-explain-finrl-code-to-me-6a91d612296f)
++ [ChatGPT Robo Advisor v2](./fingpt)
++ [ChatGPT Robo Advisor v1](./demos)
+    * A demo of using ChatGPT to build a Robo-advisor 
++ [ChatGPT Trading Agent V2](./fingpt)
+    * A FinRL agent that trades as smartly as ChatGPT by using the large language model behind ChatGPT
++ [ChatGPT Trading Agent V1](./fingpt)
+    * Trade with the suggestions given by ChatGPT
++ ChatGPT adds technical indicators into FinRL
+
+## Introductory
+
++ [Sparks of artificial general intelligence: Early experiments with GPT-4](https://arxiv.org/abs/2303.12712)
++ [GPT-4] [GPT-4 Technical Report](https://arxiv.org/abs/2303.08774)
++ [InstructGPT] [Training language models to follow instructions with human feedback](https://openreview.net/forum?id=TG8KACxEON) NeurIPS 2022.
+
+[The Journey of Open AI GPT models](https://medium.com/walmartglobaltech/the-journey-of-open-ai-gpt-models-32d95b7b7fb2).  GPT models explained. Open AI's GPT-1, GPT-2, GPT-3.
+
++ [GPT-3] [Language models are few-shot learners](https://proceedings.neurips.cc/paper/2020/hash/1457c0d6bfcb4967418bfb8ac142f64a-Abstract.html) NeurIPS 2020.
++ [GPT-2] [Language Models are Unsupervised Multitask Learners](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
++ [GPT-1] [Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf)
++ [Transformer] [Attention is All you Need](https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html) NeurIPS 2017.
+
+## (Financial) Big Data
+
++ [BloombergGPT] [BloombergGPT: A Large Language Model for Finance](https://arxiv.org/abs/2303.17564)
+
++ [WHAT’S IN MY AI?](https://lifearchitect.ai/whats-in-my-ai/) A Comprehensive Analysis of Datasets Used to Train GPT-1, GPT-2, GPT-3, GPT-NeoX-20B, Megatron-11B, MT-NLG, and Gopher
+
++ [FinRL-Meta Repo](https://github.com/AI4Finance-Foundation/FinRL-Meta) and paper [FinRL-Meta: Market Environments and Benchmarks for Data-Driven Financial Reinforcement Learning](https://proceedings.neurips.cc/paper_files/paper/2022/hash/0bf54b80686d2c4dc0808c2e98d430f7-Abstract-Datasets_and_Benchmarks.html). Advances in Neural Information Processing Systems, 2022.
+
++ [AI4Finance] [FinNLP](https://github.com/AI4Finance-Foundation/FinNLP) Democratizing Internet-scale financial data.
+
+## Interesting Demos
+
++ [GPT-3 Creative Fiction](https://gwern.net/gpt-3#prompts-as-programming) Creative writing by OpenAI’s GPT-3 model, demonstrating poetry, dialogue, puns, literary parodies, and storytelling. Plus advice on effective GPT-3 prompt programming & avoiding common errors.
+
+## ChatGPT for FinTech
+
+**ChatGPT Trading Bot**
++ [YouTube video] [ChatGPT Trading strategy 20097% returns](https://www.youtube.com/watch?v=unsa_gXPAJ4)
++ [YouTube video] [ChatGPT Coding - Make A Profitable Trading Strategy In Five Minutes!](https://www.youtube.com/watch?v=4SG2884RcDY)
++ [YouTube video] [Easy Automated Live Trading using ChatGPT (+9660.3% hands free)](https://www.youtube.com/watch?v=dIEZVPVOZPQ)
++ [YouTube video] [ChatGPT Trading Strategy 893% Returns](https://www.youtube.com/watch?v=YxjvjK5AD2M)
++ [YouTube video] [ChatGPT 10 Million Trading Strategy](https://www.youtube.com/watch?v=9VPfd08uU4Q)
++ [YouTube video] [ChatGPT: Your Crypto Assistant](https://www.youtube.com/watch?v=LpzeshX6s2w)
++ [YouTube video] [Generate Insane Trading Returns with ChatGPT and TradingView](https://www.youtube.com/watch?v=ekz6ugJE1h0&t=3s)
 
 
-### 4. Data Sets
-  |   Data Source    | Type | Stocks | Dates | Available |
-  | :--------------: | :----: | :----: | :-------: | :--------------: |
-  | [AShare](https://github.com/JinanZou/Astock)  | News |   3680   |   2018-07-01 to 2021-11-30   |  √  |
-  | [stocknet-dataset](https://github.com/yumoxu/stocknet-dataset) | Tweets |   87   |   2014-01-02 to 2015-12-30   |  √  |
-  | [CHRNN](https://github.com/wuhuizhe/CHRNN) | Tweets | 38 | 2017-01-03 to 2017-12-28 | √ |
+**(Fast and accurate) Sentiment Analysis**
 
-## Ⅲ. Large Language Models (LLMs)
-* [ChatGPT (GPT 3.5)](https://openai.com/blog/chatgpt)
-* [GPT 4.0](https://openai.com/research/gpt-4)
-* [ChatGLM](https://github.com/THUDM/ChatGLM-6B)
-* [PaLM](https://developers.googleblog.com/2023/03/announcing-palm-api-and-makersuite.html)
-* [LLaMA](https://ai.facebook.com/blog/large-language-model-llama-meta-ai/)
-* [FinBERT](https://github.com/yya518/FinBERT)
-* [Hugging Face](https://huggingface.co/)
+   GPT-3 can help study customer surveys, social media tweets from customers/users.
+
+   Tweets
++ [Tweet Classifier](https://platform.openai.com/playground/p/default-tweet-classifier?model=text-davinci-003)
++ [Advanced Tweet Classifier](https://platform.openai.com/playground/p/default-adv-tweet-classifier?model=text-davinci-003)
+
+  Financial News
++ [Algorithmic Trading using Sentiment Analysis on News Articles](https://towardsdatascience.com/https-towardsdatascience-com-algorithmic-trading-using-sentiment-analysis-on-news-articles-83db77966704)
++ [Accessing Historical Financial News Headlines with Python](https://python.plainenglish.io/access-historical-financial-news-headlines-with-python-be1b8faaea9f)
+
+**PromptNet** Analogy to ImageNet and WordNet, it is critical to build a PromptNet.
+
++ [Awesome_Prompting_Papers_in_Computer_Vision](https://github.com/ttengwang/Awesome_Prompting_Papers_in_Computer_Vision)
++ [OpenPrompt](https://github.com/thunlp/OpenPrompt)
++ [promptsource](https://github.com/bigscience-workshop/promptsource)
+
+**Robo-advisor**
+
+**Coding-tutor**
+
++ [Hey, ChatGPT! Explain FinRL code to me!](https://medium.com/@ai4finance/hey-chatgpt-explain-finrl-code-to-me-6a91d612296f)
+
+**Blogs about ChatGPT for FinTech**
+
+## ChatGPT APIs
+
+Prompting as a new programming paradigm!
++ [Towards Data Science] [GPT-3: Creative Potential of NLP](https://towardsdatascience.com/gpt-3-creative-potential-of-nlp-d5ccae16c1ab)
++ [YouTube video] [OpenAI GPT-3 - Prompt Engineering For Financial NLP](https://www.youtube.com/watch?v=Nl2Cdbao5Ws)
+
++ [OpenAI API for GPT-3](https://platform.openai.com/docs/models/gpt-3)
++ [ChatGPT-wrapper: python and shell](https://github.com/mmabrouk/chatgpt-wrapper)
++ [OpenAI Examples Library](https://platform.openai.com/examples)
++ [GPT-3 Sandbox (Github)](https://github.com/shreyashankar/gpt3-sandbox) Enable users to create cool web demos using OpenAI GPT-3 API.
++ [Exploring the Capabilities of the ChatGPT API: A Beginner’s Guide](https://levelup.gitconnected.com/exploring-the-capabilities-of-the-chatgpt-api-a-beginners-guide-e9089d49961f)
++ [Reverse engineered ChatGPT API](https://github.com/acheong08/ChatGPT)
+
+**Prompting programming**
+
+## ChatGPT relatives: 
+
+[A Release Timeline](https://github.com/osanseviero/ml_timeline) of many LLMs.
+
+[PaLM](https://arxiv.org/abs/2204.02311)
+
+[Chincella](https://arxiv.org/abs/2203.15556)
+
+Interesting evaluations:
++ [RLHF for pretraining](https://arxiv.org/abs/2302.08582)
+
++ [Compare ChatGPT with GPT3.5](https://arxiv.org/pdf/2302.06476.pdf)
+
++ [Is ChatGPT A Good Translator? A Preliminary Study](https://arxiv.org/pdf/2301.08745.pdf)
+
++ [A Multitask, Multilingual, Multimodal Evaluation of ChatGPT
+on Reasoning, Hallucination, and Interactivity](https://arxiv.org/pdf/2302.04023.pdf)
+
+[YouTube video] [Physics Solution: ChatGPT vs. Google](https://www.youtube.com/watch?v=x4dIx9VYQoM)
+
+## Links
+
++ [LLM Survey](https://github.com/RUCAIBox/LLMSurvey)
++ [Awesome GPT-3 Examples](https://github.com/elyase/awesome-gpt3)
