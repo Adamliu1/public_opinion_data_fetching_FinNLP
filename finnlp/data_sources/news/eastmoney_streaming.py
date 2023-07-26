@@ -45,6 +45,8 @@ class Eastmoney_Streaming(News_Downloader):
         s.keep_alive = False  # 关闭多余连接
         
         response = self._request_get(url, headers=headers)
+        
+
         if response.status_code != 200:
             return "Error"
         
